@@ -22,6 +22,8 @@ public class Model {
 		// Leggi lista degli oggetti dal DB
 		ArtsmiaDAO dao = new ArtsmiaDAO();
 		this.artObjects = dao.listObjects();
+		System.out.format("Oggetti caricati: %d oggetti\n", this.artObjects.size());
+
 
 		// Crea il grafo
 		this.graph = new SimpleWeightedGraph<>(DefaultWeightedEdge.class);
@@ -69,6 +71,7 @@ public class Model {
 		/* FINE VERSIONE 2 */
 
 		/* VERSIONE 1 - per nulla efficiente ** esegue una query per ogni coppia di vertici */
+		/*
 		for (ArtObject aop : this.artObjects) {
 			for (ArtObject aoa : this.artObjects) {
 				if (!aop.equals(aoa) && aop.getId() < aoa.getId()) { // escludo coppie (ao, ao) per escludere i loop
@@ -83,7 +86,7 @@ public class Model {
 					}
 				}
 			}
-		}
+		} */
 		/* FINE VERSIONE 1 */
 	}
 
