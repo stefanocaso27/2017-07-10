@@ -67,7 +67,7 @@ public class Model {
 	/**
 	 * Aggiungi gli archi al grafo
 	 * 
-	 * VERSIONE 2 - più efficiente ** Utilizza il metodo listArtObjectAndCount per
+	 * VERSIONE 2 - piï¿½ efficiente ** Utilizza il metodo listArtObjectAndCount per
 	 * fare una sola query per vertice, ottenendo in un solo colpo tutti gli archi
 	 * adiacenti a tale vertice (ed il relativo peso)
 	 */
@@ -78,9 +78,9 @@ public class Model {
 
 			for (ArtObjectAndCount c : connessi) {
 				ArtObject dest = new ArtObject(c.getArtObjectId(), null, null, null, 0, null, null, null, null, null, 0,
-						null, null, null, null, null); // l'oggetto "dest" è un ArtObject inizializzato in modo
-														// <i>lazy</i>, cioè solo con i campi utili per il calcolo di
-														// hashCode/equals. In questo modo può "impersonare" un vertice
+						null, null, null, null, null); // l'oggetto "dest" ï¿½ un ArtObject inizializzato in modo
+														// <i>lazy</i>, cioï¿½ solo con i campi utili per il calcolo di
+														// hashCode/equals. In questo modo puï¿½ "impersonare" un vertice
 														// del grafo.
 				// System.out.format("(%d, %d) peso %d\n", ao.getId(), dest.getId(),
 				// c.getCount()) ;
@@ -93,7 +93,7 @@ public class Model {
 	/**
 	 * Aggiungi gli archi al grafo
 	 * 
-	 * VERSIONE 3 - la più efficiente di tutte ** esegue una query unica (complessa,
+	 * VERSIONE 3 - la piï¿½ efficiente di tutte ** esegue una query unica (complessa,
 	 * ma una sola) con la quale ottiene in un sol colpo tutti gli archi del grafo
 	 * 
 	 */
@@ -113,6 +113,14 @@ public class Model {
 		int comuni = dao.contaExhibitionComuni(aop, aoa);
 
 		return comuni;
+	}
+
+	public int getGraphNumEdges() {
+		return this.graph.edgeSet().size() ;
+	}
+	
+	public int getGraphNumVertices() {
+		return this.graph.vertexSet().size() ;
 	}
 
 }
