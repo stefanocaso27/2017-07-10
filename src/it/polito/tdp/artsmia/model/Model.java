@@ -1,11 +1,15 @@
 package it.polito.tdp.artsmia.model;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.traverse.DepthFirstIterator;
 
 import it.polito.tdp.artsmia.db.ArtsmiaDAO;
 
@@ -13,6 +17,8 @@ public class Model {
 
 	private List<ArtObject> artObjects;
 	private Graph<ArtObject, DefaultWeightedEdge> graph;
+
+	List<ArtObject> best = null;
 
 	/**
 	 * Popola la lista artObjects (leggendo dal DB) e crea il grafo.
@@ -80,7 +86,8 @@ public class Model {
 				ArtObject dest = new ArtObject(c.getArtObjectId(), null, null, null, 0, null, null, null, null, null, 0,
 						null, null, null, null, null); // l'oggetto "dest" � un ArtObject inizializzato in modo
 														// <i>lazy</i>, cio� solo con i campi utili per il calcolo di
-														// hashCode/equals. In questo modo pu� "impersonare" un vertice
+														// hashCode/equals. In questo modo pu� "impersonare" un
+														// vertice
 														// del grafo.
 				// System.out.format("(%d, %d) peso %d\n", ao.getId(), dest.getId(),
 				// c.getCount()) ;
@@ -93,8 +100,9 @@ public class Model {
 	/**
 	 * Aggiungi gli archi al grafo
 	 * 
-	 * VERSIONE 3 - la pi� efficiente di tutte ** esegue una query unica (complessa,
-	 * ma una sola) con la quale ottiene in un sol colpo tutti gli archi del grafo
+	 * VERSIONE 3 - la pi� efficiente di tutte ** esegue una query unica
+	 * (complessa, ma una sola) con la quale ottiene in un sol colpo tutti gli archi
+	 * del grafo
 	 * 
 	 */
 	private void addEdgesV3() {
@@ -116,11 +124,109 @@ public class Model {
 	}
 
 	public int getGraphNumEdges() {
-		return this.graph.edgeSet().size() ;
+		return this.graph.edgeSet().size();
 	}
-	
+
 	public int getGraphNumVertices() {
-		return this.graph.vertexSet().size() ;
+		return this.graph.vertexSet().size();
+	}
+
+	public boolean isObjIdValid(int idObj) {
+		if (this.artObjects == null)
+			return false;
+
+		for (ArtObject ao : this.artObjects) {
+			if (ao.getId() == idObj)
+				return true;
+		}
+		return false;
+	}
+
+	public int calcolaDimensioneCC(int idObj) {
+
+		// trova il vertice di partenza
+		ArtObject start = trovaVertice(idObj);
+
+		// visita il grafo
+		Set<ArtObject> visitati = new HashSet<>();
+		DepthFirstIterator<ArtObject, DefaultWeightedEdge> dfv = new DepthFirstIterator<>(this.graph, start);
+		while (dfv.hasNext())
+			visitati.add(dfv.next());
+
+		// conta gli elementi
+		return visitati.size();
+	}
+
+	public List<ArtObject> getArtObjects() {
+		return artObjects;
+	}
+
+	// SOLUZIONE PUNTO 2
+
+	public List<ArtObject> camminoMassimo(int startId, int LUN) {
+		// trova il vertice di partenza
+		ArtObject start = trovaVertice(startId);
+
+		List<ArtObject> parziale = new ArrayList<>();
+		parziale.add(start);
+
+		this.best = new ArrayList<>();
+		best.add(start);
+
+		cerca(parziale, 1, LUN);
+
+		return best;
+
+	}
+
+	private void cerca(List<ArtObject> parziale, int livello, int LUN) {
+		if (livello == LUN) {
+			// caso terminale
+			if (peso(parziale) > peso(best)) {
+				best = new ArrayList<>(parziale);
+				System.out.println(parziale);
+			}
+			return;
+		}
+
+		// trova vertici adiacenti all'ultimo
+		ArtObject ultimo = parziale.get(parziale.size() - 1);
+
+		List<ArtObject> adiacenti = Graphs.neighborListOf(this.graph, ultimo);
+
+		for (ArtObject prova : adiacenti) {
+			if (!parziale.contains(prova) && prova.getClassification() != null
+					&& prova.getClassification().equals(parziale.get(0).getClassification())) {
+				parziale.add(prova);
+				cerca(parziale, livello + 1, LUN);
+				parziale.remove(parziale.size() - 1);
+			}
+		}
+
+	}
+
+	private int peso(List<ArtObject> parziale) {
+		int peso = 0;
+		for (int i = 0; i < parziale.size() - 1; i++) {
+			DefaultWeightedEdge e = graph.getEdge(parziale.get(i), parziale.get(i + 1));
+			int pesoarco = (int) graph.getEdgeWeight(e);
+			peso += pesoarco;
+		}
+		return peso;
+	}
+
+	private ArtObject trovaVertice(int idObj) {
+		// trova il vertice di partenza
+		ArtObject start = null;
+		for (ArtObject ao : this.artObjects) {
+			if (ao.getId() == idObj) {
+				start = ao;
+				break;
+			}
+		}
+		if (start == null)
+			throw new IllegalArgumentException("Vertice " + idObj + " non esistente");
+		return start;
 	}
 
 }
